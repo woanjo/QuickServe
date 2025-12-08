@@ -2,7 +2,7 @@
 require_once 'config/database.php';
 require_once 'includes/functions.php';
 
-requireAdmin();
+requireAdmin(); // make sure nga only admins ray maka access ani nga page
 
 $missionId = $_GET['id'] ?? null;
 $mission = null;
@@ -10,6 +10,8 @@ $isEdit = false;
 $message = '';
 $messageType = '';
 
+// Check if ang mission ID exists in URL 
+// if nag exist, ma load mission data and ma switch to edit mode
 if ($missionId) {
     $adminId = getUserId();
     $stmt = $pdo->prepare("SELECT * FROM missions WHERE id = ? AND admin_id = ?");
@@ -25,7 +27,11 @@ if ($missionId) {
     }
 }
 
+   
+// e handle form submission
+// mag collect ug inputs, validate sa required fields, and prepare for save
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // mag collect ug form inputs
     $title = trim($_POST['title']);
     $description = trim($_POST['description']);
     $missionDate = $_POST['mission_date'];
@@ -39,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $errors = [];
     
+    // e validate/check ang required fields
     if (empty($title)) $errors[] = 'Title is required';
     if (empty($description)) $errors[] = 'Description is required';
     if (empty($missionDate)) $errors[] = 'Date is required';
@@ -46,9 +53,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($location)) $errors[] = 'Location is required';
     if ($totalSlots <= 0) $errors[] = 'Slots must be a positive number';
     if ($hours <= 0) $errors[] = 'Hours must be a positive number';
-    
+
+// mag save ug mission 
+// if edit mode siya, e update lang ang existing record, else insert a new mission
     if (empty($errors)) {
         if ($isEdit) {
+            // update ug mission
             $stmt = $pdo->prepare("
                 UPDATE missions 
                 SET title = ?, description = ?, mission_date = ?, mission_time = ?, 
@@ -66,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $messageType = 'success';
             }
         } else {
+            // mag insert ug new mission
             $adminId = getUserId();
             $stmt = $pdo->prepare("
                 INSERT INTO missions (admin_id, title, description, mission_date, mission_time, location, 

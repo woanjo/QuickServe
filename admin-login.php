@@ -5,6 +5,7 @@ require_once 'includes/functions.php';
 $error = '';
 $success = '';
 
+// if already logged in → send admin to dashboard
 if (isLoggedIn()) {
     redirect(isAdmin() ? 'admin-dashboard.php' : 'missions.php');
 }

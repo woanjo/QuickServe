@@ -5,6 +5,7 @@ require_once 'includes/functions.php';
 requireAdmin();
 
 // Handle approve/reject signups
+// admin can approve or reject volunteer requests
 if (isset($_POST['action_signup']) && isset($_POST['signup_id'])) {
     $signupId = $_POST['signup_id'];
     $action = $_POST['action_signup'];
@@ -27,7 +28,8 @@ if (isset($_POST['action_signup']) && isset($_POST['signup_id'])) {
     }
 }
 
-// Handle confirm completion
+// Handle confirm completion 
+// admin confirms volunteer finished mission hours
 if (isset($_POST['confirm_completion']) && isset($_POST['signup_id'])) {
     $signupId = $_POST['signup_id'];
     $adminId = getUserId();
@@ -48,14 +50,15 @@ if (isset($_POST['confirm_completion']) && isset($_POST['signup_id'])) {
     }
 }
 
-// Handle delete mission
+// Handle delete mission 
+// admin can delete mission and related signups
 if (isset($_POST['delete_mission'])) {
     $missionId = $_POST['mission_id'] ?? null;
     $adminId = getUserId();
     
     if ($missionId) {
         try {
-            // Check if admin owns this mission
+            // Check if ang admin owns ani nga mission
             $checkStmt = $pdo->prepare("SELECT admin_id FROM missions WHERE id = ?");
             $checkStmt->execute([$missionId]);
             $missionData = $checkStmt->fetch();
@@ -81,10 +84,12 @@ if (isset($_POST['delete_mission'])) {
 
 $adminId = getUserId();
 
+// e count ang total missions nga gi created ani nga admin
 $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM missions WHERE admin_id = ?");
 $stmt->execute([$adminId]);
 $totalMissions = $stmt->fetch()['total'];
 
+// e count ang pending signups nga nag need ug approval
 $stmt = $pdo->prepare("
     SELECT COUNT(*) as total FROM signups 
     WHERE status = 'pending' 
@@ -93,6 +98,7 @@ $stmt = $pdo->prepare("
 $stmt->execute([$adminId]);
 $pendingVerification = $stmt->fetch()['total'];
 
+// e count ang volunteers scheduled today
 $stmt = $pdo->prepare("
     SELECT COUNT(DISTINCT s.user_id) as total 
     FROM signups s
@@ -101,6 +107,8 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$adminId]);
 $volunteersToday = $stmt->fetch()['total'];
+
+// get recent missions list
 $stmt = $pdo->prepare("
     SELECT m.*, 
     (SELECT COUNT(*) FROM signups WHERE mission_id = m.id) as signup_count
@@ -112,7 +120,7 @@ $stmt = $pdo->prepare("
 $stmt->execute([$adminId]);
 $recentMissions = $stmt->fetchAll();
 
-// Get pending signups for this admin
+// get pending signups for this admin
 $stmt = $pdo->prepare("
     SELECT s.*, u.full_name, u.email, m.title as mission_title, m.mission_date
     FROM signups s
@@ -125,7 +133,7 @@ $stmt = $pdo->prepare("
 $stmt->execute([$adminId]);
 $pendingSignups = $stmt->fetchAll();
 
-// Get approved signups waiting for completion
+// get approved signups waiting for completion
 $stmt = $pdo->prepare("
     SELECT s.*, u.full_name, u.email, m.title as mission_title, m.hours, m.mission_date
     FROM signups s
