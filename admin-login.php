@@ -10,11 +10,13 @@ if (isLoggedIn()) {
     redirect(isAdmin() ? 'admin-dashboard.php' : 'missions.php');
 }
 
+// handles login, e verify ang admin credentials and start session
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['login'])) {
+    if (isset($_POST['login'])) { // Collects email and password
         $email = trim($_POST['email']);
         $password = $_POST['password'];
         
+        // checks if ang user exists ug is an admin.
         $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND is_admin = 1");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
@@ -24,11 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['email'] = $user['email'];
             $_SESSION['full_name'] = $user['full_name'];
             $_SESSION['is_admin'] = (bool)$user['is_admin'];
-            
+        
+        // f valid, starts session and redirects to admin dashboard.
             redirect('admin-dashboard.php');
         } else {
             $error = 'Invalid email or password. Only admins can login here.';
         }
+        // Handle registration → validate inputs and create new admin account
     } elseif (isset($_POST['register'])) {
         $email = trim($_POST['email']);
         $password = $_POST['password'];
