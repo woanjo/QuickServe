@@ -18,6 +18,7 @@ $query = "
 
 $params = [];
 
+// if search keyword provided → filter by title or description
 if ($search) {
     $query .= " AND (m.title LIKE ? OR m.description LIKE ?)";
     $searchTerm = "%$search%";
