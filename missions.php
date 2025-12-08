@@ -1,13 +1,15 @@
 <?php
-require_once 'config/database.php';
-require_once 'includes/functions.php';
+require_once 'config/database.php';   // Load database connection
+require_once 'includes/functions.php';// Load helper functions
 
-requireLogin();
+requireLogin(); // Ensure only logged-in users can access
 
+// If logged-in user is an admin → redirect to admin dashboard
 if (isAdmin()) {
     redirect('admin-dashboard.php');
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
