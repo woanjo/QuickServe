@@ -1,18 +1,21 @@
 <?php
-require_once 'config/database.php';
-require_once 'includes/functions.php';
+require_once 'config/database.php';   // Load database connection
+require_once 'includes/functions.php';// Load helper functions
 
-requireAdmin();
+requireAdmin(); // Restrict access to admins only
 
+// Determine view mode (missions or signups)
 $view = $_GET['view'] ?? 'missions';
 $viewSignupsFor = $_GET['view_signups'] ?? null;
 $message = '';
 $messageType = '';
 
+// Handle mission deletion (via GET parameter)
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $adminId = getUserId();
     $missionId = $_GET['delete'];
     
+    // Verify mission belongs to this admin
     $checkStmt = $pdo->prepare("SELECT admin_id FROM missions WHERE id = ?");
     $checkStmt->execute([$missionId]);
     $missionData = $checkStmt->fetch();
@@ -21,6 +24,7 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
         $message = 'You do not have permission to delete this mission!';
         $messageType = 'error';
     } else {
+        // Delete mission
         $stmt = $pdo->prepare("DELETE FROM missions WHERE id = ?");
         if ($stmt->execute([$missionId])) {
             $message = 'Mission deleted successfully!';
@@ -29,13 +33,16 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     }
 }
 
+// Handle export to CSV
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="missions_export.csv"');
     
     $output = fopen('php://output', 'w');
-    fputcsv($output, ['ID', 'Title', 'Date', 'Time', 'Location', 'Total Slots', 'Signups', 'Category', 'Status']);
+    // Write CSV header row
+    fputcsv($output, ['ID','Title','Date','Time','Location','Total Slots','Signups','Category','Status']);
     
+    // Query missions with signup counts
     $stmt = $pdo->query("
         SELECT m.*, 
         (SELECT COUNT(*) FROM signups WHERE mission_id = m.id) as signup_count
@@ -43,24 +50,20 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         ORDER BY m.mission_date DESC
     ");
     
+    // Write each mission row to CSV
     while ($row = $stmt->fetch()) {
         fputcsv($output, [
-            $row['id'],
-            $row['title'],
-            $row['mission_date'],
-            $row['mission_time'],
-            $row['location'],
-            $row['total_slots'],
-            $row['signup_count'],
-            $row['category'],
-            $row['status']
+            $row['id'],$row['title'],$row['mission_date'],$row['mission_time'],
+            $row['location'],$row['total_slots'],$row['signup_count'],
+            $row['category'],$row['status']
         ]);
     }
     
     fclose($output);
-    exit;
+    exit; // Stop script after CSV export
 }
 
+// If viewing signups for a specific mission
 if ($viewSignupsFor) {
     $stmt = $pdo->prepare("
         SELECT s.*, u.full_name, u.email, m.title as mission_title
@@ -74,6 +77,7 @@ if ($viewSignupsFor) {
     $signups = $stmt->fetchAll();
 } else {
     $adminId = getUserId();
+    // Get all missions owned by this admin
     $stmt = $pdo->prepare("
         SELECT m.*, 
         (SELECT COUNT(*) FROM signups WHERE mission_id = m.id) as signup_count
@@ -84,6 +88,7 @@ if ($viewSignupsFor) {
     $stmt->execute([$adminId]);
     $missions = $stmt->fetchAll();
     
+    // If view=signups → get all signups across admin’s missions
     if ($view === 'signups') {
         $stmt = $pdo->prepare("
             SELECT s.*, u.full_name, u.email, m.title as mission_title, m.mission_date
@@ -98,6 +103,7 @@ if ($viewSignupsFor) {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
