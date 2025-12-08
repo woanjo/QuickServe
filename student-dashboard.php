@@ -166,7 +166,7 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                     
                     <?php if (!empty($pendingMissions)): ?>
                     <div class="section">
-                        <h2>⏳ Awaiting Approval</h2>
+                        <h2>Awaiting Approval</h2>
                         <p class="text-muted">These missions are pending admin approval to confirm your participation.</p>
                         <div class="missions-list">
                             <?php foreach ($pendingMissions as $mission): ?>

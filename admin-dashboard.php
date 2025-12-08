@@ -235,7 +235,7 @@ $completedSignups = $stmt->fetchAll();
                 <?php if (!empty($pendingSignups)): ?>
                 <div class="section">
                     <div class="section-header">
-                        <h2>⏳ Pending Approvals (<?php echo count($pendingSignups); ?>)</h2>
+                        <h2>Pending Approvals (<?php echo count($pendingSignups); ?>)</h2>
                     </div>
                     
                     <div class="table-responsive">
@@ -276,7 +276,7 @@ $completedSignups = $stmt->fetchAll();
                 <?php if (!empty($completionPending)): ?>
                 <div class="section">
                     <div class="section-header">
-                        <h2>✅ Confirm Volunteer Completion (<?php echo count($completionPending); ?>)</h2>
+                        <h2>Confirm Volunteer Completion (<?php echo count($completionPending); ?>)</h2>
                     </div>
                     
                     <div class="table-responsive">
