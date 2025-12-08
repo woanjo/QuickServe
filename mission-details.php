@@ -1,20 +1,23 @@
 <?php
-require_once 'config/database.php';
+require_once 'config/database.php';   
 require_once 'includes/functions.php';
 
-requireLogin();
+requireLogin(); 
 
-$missionId = $_GET['id'] ?? null;
+$missionId = $_GET['id'] ?? null; // Mission ID from URL
 $message = '';
 $messageType = '';
 
+// If no mission ID → redirect back to missions list
 if (!$missionId) {
     redirect('missions.php');
 }
 
+// Handle reservation form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
     $userId = getUserId();
     
+    // Check if user already reserved this mission
     $stmt = $pdo->prepare("SELECT id FROM signups WHERE user_id = ? AND mission_id = ?");
     $stmt->execute([$userId, $missionId]);
     
@@ -22,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
         $message = 'You have already reserved this mission.';
         $messageType = 'error';
     } else {
+        // Check available slots
         $stmt = $pdo->prepare("
             SELECT total_slots, 
             (SELECT COUNT(*) FROM signups WHERE mission_id = ?) as reserved_slots
@@ -34,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
             $message = 'Sorry, this mission is full.';
             $messageType = 'error';
         } else {
+            // Insert new signup record
             $stmt = $pdo->prepare("INSERT INTO signups (user_id, mission_id) VALUES (?, ?)");
             if ($stmt->execute([$userId, $missionId])) {
                 $message = 'Mission reserved successfully!';
@@ -43,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
     }
 }
 
+// Fetch mission details + slots left + whether user reserved
 $stmt = $pdo->prepare("
     SELECT m.*, 
     (m.total_slots - COALESCE((SELECT COUNT(*) FROM signups WHERE mission_id = m.id), 0)) as slots_left,
@@ -53,10 +59,12 @@ $stmt = $pdo->prepare("
 $stmt->execute([getUserId(), $missionId]);
 $mission = $stmt->fetch();
 
+// If mission not found → redirect
 if (!$mission) {
     redirect('missions.php');
 }
 
+// Fetch recommended missions (same category, active, not this mission)
 $stmt = $pdo->prepare("
     SELECT * FROM missions 
     WHERE id != ? AND category = ? AND status = 'active'
@@ -66,6 +74,7 @@ $stmt = $pdo->prepare("
 $stmt->execute([$missionId, $mission['category']]);
 $recommended = $stmt->fetchAll();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
