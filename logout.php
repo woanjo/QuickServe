@@ -1,6 +1,6 @@
 <?php
-session_start();   // Start or resume the current session (needed to access session data)
-session_destroy(); // Destroy all session data (logs the user out)
-header('Location: index.php'); // Redirect user back to login page (index.php)
-exit;              // Stop script execution after redirect
+session_start();   // Start or resume the current session 
+session_destroy(); // log outs the user
+header('Location: index.php'); // Redirect user back to login page
+exit;             
 ?>

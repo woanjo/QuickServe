@@ -1,6 +1,6 @@
 <?php
-require_once 'config/database.php';   // Load database connection
-require_once 'includes/functions.php';// Load helper functions
+require_once 'config/database.php';  
+require_once 'includes/functions.php';
 
 requireAdmin(); // Restrict access to admins only
 
