@@ -1,15 +1,18 @@
 <?php
-require_once 'config/database.php';
+require_once 'config/database.php';   
 require_once 'includes/functions.php';
 
-requireAdmin();
+requireAdmin(); // Restrict access to admins only
 
+// Collect filter inputs from URL
 $missionFilter = $_GET['mission'] ?? '';
 $dateFrom = $_GET['date_from'] ?? '';
 $dateTo = $_GET['date_to'] ?? '';
 $results = [];
 
+// If user clicked "Generate" or "Export"
 if (isset($_GET['generate']) || isset($_GET['export'])) {
+    // Base query: join signups, missions, and users
     $query = "
         SELECT m.title, m.mission_date, m.mission_time, m.location, m.category, m.hours,
                u.full_name, u.email, s.signup_date, s.status, s.completed
@@ -21,11 +24,13 @@ if (isset($_GET['generate']) || isset($_GET['export'])) {
     
     $params = [];
     
+    // Apply mission filter
     if ($missionFilter) {
         $query .= " AND m.id = ?";
         $params[] = $missionFilter;
     }
     
+    // Apply date filters
     if ($dateFrom) {
         $query .= " AND m.mission_date >= ?";
         $params[] = $dateFrom;
@@ -36,39 +41,40 @@ if (isset($_GET['generate']) || isset($_GET['export'])) {
         $params[] = $dateTo;
     }
     
+    // Order results by mission date and signup date
     $query .= " ORDER BY m.mission_date DESC, s.signup_date DESC";
     
+    // Execute query
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
     $results = $stmt->fetchAll();
     
+    // If export requested → output CSV
     if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename="volunteer_report.csv"');
         
         $output = fopen('php://output', 'w');
-        fputcsv($output, ['Mission', 'Date', 'Time', 'Location', 'Category', 'Hours', 'Volunteer', 'Email', 'Signup Date', 'Status', 'Completed']);
+        // CSV header row
+        fputcsv($output, ['Mission','Date','Time','Location','Category','Hours','Volunteer','Email','Signup Date','Status','Completed']);
         
+        // Write each row
         foreach ($results as $row) {
             fputcsv($output, [
-                $row['title'],
-                $row['mission_date'],
-                $row['mission_time'],
-                $row['location'],
-                $row['category'],
-                $row['hours'],
-                $row['full_name'],
-                $row['email'],
-                $row['signup_date'],
-                $row['status'],
-                $row['completed'] ? 'Yes' : 'No'
+                $row['title'],$row['mission_date'],$row['mission_time'],$row['location'],
+                $row['category'],$row['hours'],$row['full_name'],$row['email'],
+                $row['signup_date'],$row['status'],$row['completed'] ? 'Yes' : 'No'
             ]);
         }
         
         fclose($output);
-        exit;
+        exit; 
     }
 }
+
+// Fetch missions list for filter dropdown
+$missions = $pdo->query("SELECT id, title FROM missions ORDER BY mission_date DESC")->fetchAll();
+?>
 
 $missions = $pdo->query("SELECT id, title FROM missions ORDER BY mission_date DESC")->fetchAll();
 ?>
