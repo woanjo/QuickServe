@@ -5,27 +5,34 @@ require_once 'includes/functions.php';
 $error = '';
 $success = '';
 
+// Redirect if already logged in → send admin to dashboard, student to missions
 if (isLoggedIn()) {
     redirect(isAdmin() ? 'admin-dashboard.php' : 'missions.php');
 }
 
+// Handles login, verify student credentials and start session
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['login'])) {
+    if (isset($_POST['login'])) { // If login button was pressed
+        // Get email and password from form
         $email = trim($_POST['email']);
         $password = $_POST['password'];
         
+        // Look up user in DB → must be student (is_admin = 0)
         $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND is_admin = 0");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
         
+        // If user exists AND password matches hashed password in DB
         if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_id'] = $user['id']; // Store user info in session
             $_SESSION['email'] = $user['email'];
             $_SESSION['full_name'] = $user['full_name'];
             $_SESSION['is_admin'] = (bool)$user['is_admin'];
             
+            // Redirect student to missions page
             redirect('missions.php');
         } else {
+            // Invalid login → show error
             $error = 'Invalid email or password.';
         }
     } elseif (isset($_POST['register'])) {
