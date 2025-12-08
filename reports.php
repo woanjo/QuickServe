@@ -1,6 +1,6 @@
 <?php
-require_once 'config/database.php';   
-require_once 'includes/functions.php';
+require_once 'config/database.php';   // Load database connection
+require_once 'includes/functions.php';// Load helper functions
 
 requireAdmin(); // Restrict access to admins only
 
@@ -41,6 +41,9 @@ if (isset($_GET['generate']) || isset($_GET['export'])) {
         $params[] = $dateTo;
     }
     
+    // Only include completed signups in reports
+    $query .= " AND s.completed = 1";
+    
     // Order results by mission date and signup date
     $query .= " ORDER BY m.mission_date DESC, s.signup_date DESC";
     
@@ -74,9 +77,17 @@ if (isset($_GET['generate']) || isset($_GET['export'])) {
 
 // Fetch missions list for filter dropdown
 $missions = $pdo->query("SELECT id, title FROM missions ORDER BY mission_date DESC")->fetchAll();
-?>
 
-$missions = $pdo->query("SELECT id, title FROM missions ORDER BY mission_date DESC")->fetchAll();
+// calculate total verified hours for summary card
+$stmt = $pdo->prepare("
+    SELECT COALESCE(SUM(m.hours), 0) as total_hours
+    FROM signups s
+    JOIN missions m ON s.mission_id = m.id
+    WHERE s.completed = 1
+");
+$stmt->execute();
+$hoursData = $stmt->fetch();
+$totalHours = $hoursData['total_hours'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -109,6 +120,14 @@ $missions = $pdo->query("SELECT id, title FROM missions ORDER BY mission_date DE
         <div class="page-header">
             <h1>Reports & Export</h1>
             <p>Generate and export volunteer activity reports</p>
+        </div>
+        
+        <!-- Summary card for total verified hours -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value"><?php echo number_format($totalHours, 1); ?></div>
+                <div class="stat-label">Total Verified Hours</div>
+            </div>
         </div>
         
         <div class="section">
@@ -189,6 +208,6 @@ $missions = $pdo->query("SELECT id, title FROM missions ORDER BY mission_date DE
             </div>
         <?php endif; ?>
     </main>
-    
+
 </body>
 </html>

@@ -1,6 +1,6 @@
 <?php
-require_once 'config/database.php';  
-require_once 'includes/functions.php';
+require_once 'config/database.php';   // Load database connection
+require_once 'includes/functions.php';// Load helper functions
 
 requireAdmin(); // Restrict access to admins only
 
@@ -10,10 +10,10 @@ $viewSignupsFor = $_GET['view_signups'] ?? null;
 $message = '';
 $messageType = '';
 
-// Handle mission deletion (via GET parameter)
+// --- Handle mission deletion ---
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-    $adminId = getUserId();
-    $missionId = $_GET['delete'];
+    $adminId = getUserId();          // Current admin ID
+    $missionId = $_GET['delete'];    // Mission ID to delete
     
     // Verify mission belongs to this admin
     $checkStmt = $pdo->prepare("SELECT admin_id FROM missions WHERE id = ?");
@@ -33,19 +33,20 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     }
 }
 
-// Handle export to CSV
+// --- Handle export to CSV ---
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="missions_export.csv"');
     
     $output = fopen('php://output', 'w');
-    // Write CSV header row
-    fputcsv($output, ['ID','Title','Date','Time','Location','Total Slots','Signups','Category','Status']);
+    // CSV header row includes completed count
+    fputcsv($output, ['ID','Title','Date','Time','Location','Total Slots','Signups','Category','Status','Completed']);
     
-    // Query missions with signup counts
+    // Query missions with signup and completed counts
     $stmt = $pdo->query("
         SELECT m.*, 
-        (SELECT COUNT(*) FROM signups WHERE mission_id = m.id) as signup_count
+        (SELECT COUNT(*) FROM signups WHERE mission_id = m.id) as signup_count,
+        (SELECT COUNT(*) FROM signups WHERE mission_id = m.id AND completed = 1) as completed_count
         FROM missions m
         ORDER BY m.mission_date DESC
     ");
@@ -55,15 +56,28 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         fputcsv($output, [
             $row['id'],$row['title'],$row['mission_date'],$row['mission_time'],
             $row['location'],$row['total_slots'],$row['signup_count'],
-            $row['category'],$row['status']
+            $row['category'],$row['status'],$row['completed_count']
         ]);
     }
     
     fclose($output);
-    exit; // Stop script after CSV export
+    exit; // Stop script after export
 }
 
-// If viewing signups for a specific mission
+// --- Handle marking signup as completed ---
+if (isset($_GET['complete']) && is_numeric($_GET['complete'])) {
+    $signupId = $_GET['complete'];   // Signup ID to mark completed
+    $stmt = $pdo->prepare("UPDATE signups SET completed = 1 WHERE id = ?");
+    if ($stmt->execute([$signupId])) {
+        $message = 'Volunteer marked as completed!';
+        $messageType = 'success';
+    } else {
+        $message = 'Failed to mark as completed.';
+        $messageType = 'error';
+    }
+}
+
+// --- Fetch signups for a specific mission ---
 if ($viewSignupsFor) {
     $stmt = $pdo->prepare("
         SELECT s.*, u.full_name, u.email, m.title as mission_title
@@ -76,11 +90,12 @@ if ($viewSignupsFor) {
     $stmt->execute([$viewSignupsFor]);
     $signups = $stmt->fetchAll();
 } else {
+    // --- Fetch all missions owned by this admin ---
     $adminId = getUserId();
-    // Get all missions owned by this admin
     $stmt = $pdo->prepare("
         SELECT m.*, 
-        (SELECT COUNT(*) FROM signups WHERE mission_id = m.id) as signup_count
+        (SELECT COUNT(*) FROM signups WHERE mission_id = m.id) as signup_count,
+        (SELECT COUNT(*) FROM signups WHERE mission_id = m.id AND completed = 1) as completed_count
         FROM missions m
         WHERE m.admin_id = ?
         ORDER BY m.mission_date DESC
@@ -88,7 +103,7 @@ if ($viewSignupsFor) {
     $stmt->execute([$adminId]);
     $missions = $stmt->fetchAll();
     
-    // If view=signups → get all signups across admin’s missions
+    // --- If view=signups → fetch all signups across admin’s missions ---
     if ($view === 'signups') {
         $stmt = $pdo->prepare("
             SELECT s.*, u.full_name, u.email, m.title as mission_title, m.mission_date
@@ -103,7 +118,6 @@ if ($viewSignupsFor) {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -137,6 +151,7 @@ if ($viewSignupsFor) {
         <?php endif; ?>
         
         <?php if ($viewSignupsFor): ?>
+            <!-- View signups for a specific mission -->
             <div class="page-header">
                 <h1>Mission Signups</h1>
                 <a href="manage-missions.php" class="btn btn-secondary">Back to Missions</a>
@@ -151,11 +166,12 @@ if ($viewSignupsFor) {
                             <th>Signup Date</th>
                             <th>Status</th>
                             <th>Completed</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($signups)): ?>
-                            <tr><td colspan="5" class="text-center">No signups yet</td></tr>
+                            <tr><td colspan="6" class="text-center">No signups yet</td></tr>
                         <?php else: ?>
                             <?php foreach ($signups as $signup): ?>
                                 <tr>
@@ -164,6 +180,14 @@ if ($viewSignupsFor) {
                                     <td><?php echo formatDate($signup['signup_date']); ?></td>
                                     <td><span class="badge"><?php echo htmlspecialchars($signup['status']); ?></span></td>
                                     <td><?php echo $signup['completed'] ? '✓ Yes' : '✗ No'; ?></td>
+                                    <td>
+                                        <!-- Show Mark Completed button only if not yet completed -->
+                                        <?php if (!$signup['completed']): ?>
+                                            <a href="?complete=<?php echo $signup['id']; ?>" 
+                                               onclick="return confirm('Mark this volunteer as completed?')" 
+                                               class="btn btn-small btn-success">Mark Completed</a>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -171,6 +195,7 @@ if ($viewSignupsFor) {
                 </table>
             </div>
         <?php elseif ($view === 'signups'): ?>
+            <!-- View all signups across admin’s missions -->
             <div class="page-header">
                 <h1>All Signups</h1>
                 <div>
@@ -188,11 +213,13 @@ if ($viewSignupsFor) {
                             <th>Date</th>
                             <th>Signup Date</th>
                             <th>Status</th>
+                            <th>Completed</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($allSignups)): ?>
-                            <tr><td colspan="6" class="text-center">No signups yet</td></tr>
+                            <tr><td colspan="8" class="text-center">No signups yet</td></tr>
                         <?php else: ?>
                             <?php foreach ($allSignups as $signup): ?>
                                 <tr>
@@ -202,6 +229,15 @@ if ($viewSignupsFor) {
                                     <td><?php echo formatDate($signup['mission_date']); ?></td>
                                     <td><?php echo formatDate($signup['signup_date']); ?></td>
                                     <td><span class="badge"><?php echo htmlspecialchars($signup['status']); ?></span></td>
+                                    <td><?php echo $signup['completed'] ? '✓ Yes' : '✗ No'; ?></td>
+                                    <td>
+                                        <!-- Show Mark Completed button only if not yet completed -->
+                                        <?php if (!$signup['completed']): ?>
+                                            <a href="?complete=<?php echo $signup['id']; ?>" 
+                                               onclick="return confirm('Mark this volunteer as completed?')" 
+                                               class="btn btn-small btn-success">Mark Completed</a>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -209,6 +245,7 @@ if ($viewSignupsFor) {
                 </table>
             </div>
         <?php else: ?>
+            <!-- Default view: Manage Missions -->
             <div class="page-header">
                 <h1>Manage Missions</h1>
                 <div>
@@ -225,13 +262,14 @@ if ($viewSignupsFor) {
                             <th>Date</th>
                             <th>Slots</th>
                             <th>Signups</th>
+                            <th>Completed</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($missions)): ?>
-                            <tr><td colspan="6" class="text-center">No missions created yet</td></tr>
+                            <tr><td colspan="7" class="text-center">No missions created yet</td></tr>
                         <?php else: ?>
                             <?php foreach ($missions as $mission): ?>
                                 <tr>
@@ -239,6 +277,7 @@ if ($viewSignupsFor) {
                                     <td><?php echo formatDate($mission['mission_date']); ?></td>
                                     <td><?php echo $mission['total_slots']; ?></td>
                                     <td><?php echo $mission['signup_count']; ?></td>
+                                    <td><?php echo $mission['completed_count']; ?></td>
                                     <td><span class="badge"><?php echo htmlspecialchars($mission['status']); ?></span></td>
                                     <td class="actions">
                                         <a href="create-mission.php?id=<?php echo $mission['id']; ?>" class="btn btn-small">Edit</a>
@@ -255,6 +294,5 @@ if ($viewSignupsFor) {
             </div>
         <?php endif; ?>
     </main>
-    
 </body>
 </html>

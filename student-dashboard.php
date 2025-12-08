@@ -11,12 +11,14 @@ if (isAdmin()) {
 
 $userId = getUserId(); // Get current logged-in student’s ID
 
-// Query upcoming missions reserved by this student
+// Query upcoming missions reserved by this student(excluded ang completed)
 $stmt = $pdo->prepare("
     SELECT m.*, s.signup_date, s.completed, s.status
     FROM signups s
     JOIN missions m ON s.mission_id = m.id
-    WHERE s.user_id = ? AND m.mission_date >= CURRENT_DATE
+    WHERE s.user_id = ? 
+    AND m.mission_date >= CURRENT_DATE 
+    AND s.completed = 0
     ORDER BY m.mission_date ASC, m.mission_time ASC
 ");
 $stmt->execute([$userId]);
@@ -32,6 +34,17 @@ $stmt = $pdo->prepare("
 $stmt->execute([$userId]);
 $hoursData = $stmt->fetch();
 $totalHours = $hoursData['total_hours'];
+
+// completed mission list
+$stmt = $pdo->prepare("
+    SELECT m.*, s.signup_date, s.completed, s.status
+    FROM signups s
+    JOIN missions m ON s.mission_id = m.id
+    WHERE s.user_id = ? AND s.completed = 1
+    ORDER BY m.mission_date DESC
+");
+$stmt->execute([$userId]);
+$completedMissions = $stmt->fetchAll();
 
 // Handle CSV download of volunteer hours
 if (isset($_GET['download']) && $_GET['download'] === 'csv') {
@@ -178,8 +191,8 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                     
                     <?php if (!empty($approvedMissions)): ?>
                     <div class="section">
-                        <h2>✅ Approved</h2>
-                        <p class="text-muted">Your participation has been completed.</p>
+                        <h2>✅ Approved - Ready to Attend</h2>
+                        <p class="text-muted">Your participation has been confirmed! These are your upcoming approved missions.</p>
                         <div class="missions-list">
                             <?php foreach ($approvedMissions as $mission): ?>
                                 <div class="mission-list-item">
@@ -190,7 +203,7 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                                             🕐 <?php echo formatTime($mission['mission_time']); ?> • 
                                             📍 <?php echo htmlspecialchars($mission['location']); ?>
                                         </p>
-                                        <span class="badge" style="background-color: #28a745; color: white;">✅ Completed</span>
+                                        <span class="badge" style="background-color: #28a745; color: white;">✅ Approved</span>
                                     </div>
                                     <div class="mission-actions">
                                         <a href="mission-details.php?id=<?php echo $mission['id']; ?>" class="btn btn-small">View Details</a>
@@ -212,9 +225,10 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                                         <h3><?php echo htmlspecialchars($mission['title']); ?></h3>
                                         <p class="mission-meta">
                                             📅 <?php echo formatDate($mission['mission_date']); ?> • 
-                                            ⏱️ <?php echo $mission['hours']; ?> hours • 
+                                            ⏱️ <?php echo htmlspecialchars($mission['hours']); ?> hours • 
                                             📍 <?php echo htmlspecialchars($mission['location']); ?>
                                         </p>
+                                        <!-- Badge shows that this mission is completed and verified -->
                                         <span class="badge" style="background-color: #17a2b8; color: white;">🏆 Completed</span>
                                     </div>
                                     <div class="mission-actions">
@@ -225,6 +239,7 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                         </div>
                     </div>
                     <?php endif; ?>
+
                     
                     <?php if (empty($pendingMissions) && empty($approvedMissions) && empty($completedMissions)): ?>
                     <div class="section">
