@@ -1,15 +1,17 @@
 <?php
-require_once 'config/database.php';
+require_once 'config/database.php'; 
 require_once 'includes/functions.php';
 
-requireLogin();
+requireLogin(); // Ensure only logged-in users can access
 
+// If logged-in user is an admin → redirect to admin dashboard
 if (isAdmin()) {
     redirect('admin-dashboard.php');
 }
 
-$userId = getUserId();
+$userId = getUserId(); // Get current logged-in student’s ID
 
+// Query upcoming missions reserved by this student
 $stmt = $pdo->prepare("
     SELECT m.*, s.signup_date, s.completed, s.status
     FROM signups s
@@ -20,6 +22,7 @@ $stmt = $pdo->prepare("
 $stmt->execute([$userId]);
 $upcomingMissions = $stmt->fetchAll();
 
+// Query total volunteer hours completed by this student
 $stmt = $pdo->prepare("
     SELECT COALESCE(SUM(m.hours), 0) as total_hours
     FROM signups s
@@ -30,13 +33,16 @@ $stmt->execute([$userId]);
 $hoursData = $stmt->fetch();
 $totalHours = $hoursData['total_hours'];
 
+// Handle CSV download of volunteer hours
 if (isset($_GET['download']) && $_GET['download'] === 'csv') {
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="volunteer_hours.csv"');
     
     $output = fopen('php://output', 'w');
-    fputcsv($output, ['Mission Title', 'Date', 'Hours', 'Status', 'Completed']);
+    // CSV header row
+    fputcsv($output, ['Mission Title','Date','Hours','Status','Completed']);
     
+    // Query all missions signed up by this student
     $stmt = $pdo->prepare("
         SELECT m.title, m.mission_date, m.hours, s.status, s.completed
         FROM signups s
@@ -46,6 +52,7 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
     ");
     $stmt->execute([$userId]);
     
+    // Write each mission record to CSV
     while ($row = $stmt->fetch()) {
         fputcsv($output, [
             $row['title'],
@@ -57,9 +64,10 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
     }
     
     fclose($output);
-    exit;
+    exit; 
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
