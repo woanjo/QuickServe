@@ -178,7 +178,7 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                                             🕐 <?php echo formatTime($mission['mission_time']); ?> • 
                                             📍 <?php echo htmlspecialchars($mission['location']); ?>
                                         </p>
-                                        <span class="badge" style="background-color: #FFA500; color: white;">⏳ Pending</span>
+                                        <span class="badge" style="background-color: #FFA500; color: white;">Pending</span>
                                     </div>
                                     <div class="mission-actions">
                                         <a href="mission-details.php?id=<?php echo $mission['id']; ?>" class="btn btn-small">View Details</a>
@@ -191,7 +191,7 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                     
                     <?php if (!empty($approvedMissions)): ?>
                     <div class="section">
-                        <h2>✅ Approved - Ready to Attend</h2>
+                        <h2>Approved - Ready to Attend</h2>
                         <p class="text-muted">Your participation has been confirmed! These are your upcoming approved missions.</p>
                         <div class="missions-list">
                             <?php foreach ($approvedMissions as $mission): ?>
@@ -216,7 +216,7 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                     
                     <?php if (!empty($completedMissions)): ?>
                     <div class="section">
-                        <h2>🏆 Completed & Verified</h2>
+                        <h2>Completed & Verified</h2>
                         <p class="text-muted">Admin has confirmed your attendance and volunteer hours.</p>
                         <div class="missions-list">
                             <?php foreach ($completedMissions as $mission): ?>
@@ -229,7 +229,7 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                                             📍 <?php echo htmlspecialchars($mission['location']); ?>
                                         </p>
                                         <!-- Badge shows that this mission is completed and verified -->
-                                        <span class="badge" style="background-color: #17a2b8; color: white;">🏆 Completed</span>
+                                        <span class="badge" style="background-color: #17a2b8; color: white;">Completed</span>
                                     </div>
                                     <div class="mission-actions">
                                         <a href="mission-details.php?id=<?php echo $mission['id']; ?>" class="btn btn-small">View Details</a>

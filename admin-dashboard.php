@@ -214,19 +214,16 @@ $completedSignups = $stmt->fetchAll();
                 
                 <div class="stats-grid">
                     <div class="stat-card stat-card-primary">
-                        <div class="stat-icon">📋</div>
                         <div class="stat-value"><?php echo $totalMissions; ?></div>
                         <div class="stat-label">Total Missions</div>
                     </div>
                     
                     <div class="stat-card stat-card-warning">
-                        <div class="stat-icon">⏳</div>
                         <div class="stat-value"><?php echo $pendingVerification; ?></div>
                         <div class="stat-label">Pending Verification</div>
                     </div>
                     
                     <div class="stat-card stat-card-success">
-                        <div class="stat-icon">👥</div>
                         <div class="stat-value"><?php echo $volunteersToday; ?></div>
                         <div class="stat-label">Volunteers Today</div>
                     </div>
@@ -316,7 +313,7 @@ $completedSignups = $stmt->fetchAll();
                 <?php if (!empty($completedSignups)): ?>
                 <div class="section">
                     <div class="section-header">
-                        <h2>📊 Completed This Month (<?php echo count($completedSignups); ?>)</h2>
+                        <h2>Completed This Month (<?php echo count($completedSignups); ?>)</h2>
                     </div>
                     
                     <div class="table-responsive">
