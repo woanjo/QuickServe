@@ -104,7 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <button type="submit" name="login" class="btn btn-primary">Login as Admin</button>
-            <a href="#" class="forgot-password">Forgot Password?</a>
         </form>
         
         <form id="registerForm" method="POST" class="auth-form" style="display: none;">
