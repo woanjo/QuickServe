@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="login-page">
     <div class="login-container">
         <div class="logo">
-            <h1>🍃 QuickServe</h1>
+            <h1>🍃QuickServe</h1>
             <p>Student Volunteer Portal</p>
         </div>
         
