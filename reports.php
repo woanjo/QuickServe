@@ -12,7 +12,7 @@ $results = [];
 
 // If user clicked "Generate" or "Export"
 if (isset($_GET['generate']) || isset($_GET['export'])) {
-    // Base query: join signups, missions, and users
+    // Base query, join signups, missions, and users
     $query = "
         SELECT m.title, m.mission_date, m.mission_time, m.location, m.category, m.hours,
                u.full_name, u.email, s.signup_date, s.status, s.completed
