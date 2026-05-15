@@ -35,11 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Invalid login → show error
             $error = 'Invalid email or password.';
         }
+        // Registration form 
     } elseif (isset($_POST['register'])) {
         $email = trim($_POST['email']);
         $password = $_POST['password'];
         $fullName = trim($_POST['full_name']);
         
+        // Validate form, fields are required
         if (empty($email) || empty($password) || empty($fullName)) {
             $error = 'All fields are required.';
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -61,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $error = 'Registration failed. Please try again.';
                 }
-            }
+            } 
         }
     }
 }
