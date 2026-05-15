@@ -110,7 +110,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" name="login" class="btn btn-primary">Login</button>
         </form>
         
-        // Registration Form
         <form id="registerForm" method="POST" class="auth-form" style="display: none;">
             <div class="form-group">
                 <label>Full Name</label>
