@@ -274,7 +274,6 @@ $completedSignups = $stmt->fetchAll();
                         <h2>Pending Approvals (<?php echo count($pendingSignups); ?>)</h2>
                     </div>
             
-                    // Approving and Rejecting signups
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
