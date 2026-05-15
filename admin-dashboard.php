@@ -123,7 +123,7 @@ if (isset($_POST['delete_mission'])) {
 
 $adminId = getUserId();
 
-// e count ang total missions nga gi created ani nga admin
+// e count ang total missions nga gi create ani nga admin
 $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM missions WHERE admin_id = ?");
 $stmt->execute([$adminId]);
 $totalMissions = $stmt->fetch()['total'];
