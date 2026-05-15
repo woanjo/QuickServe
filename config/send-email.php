@@ -45,7 +45,7 @@ class EmailConfig {
             $this->mail->clearCCs();
             $this->mail->clearBCCs();
             $this->mail->addAddress($toEmail, $toName);
-            $this->mail->isHTML(true); 
+            $this->mail->isHTML(false); 
             $this->mail->CharSet = 'UTF-8';
             
             if ($status === 'approved') {
