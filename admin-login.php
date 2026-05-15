@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email']);
         $password = $_POST['password'];
         
-        // checks if ang user exists ug is an admin.
+        // checks if ang user exists ug is admin.
         $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND is_admin = 1");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
