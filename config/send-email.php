@@ -68,6 +68,7 @@ class EmailConfig {
         }
     }
     
+    // Approved
     private function getApprovalText($name, $missionTitle, $missionDate, $hours) {
         return "Dear <b>$name</b>,\n\n" .
                "Congratulations! Your volunteer application for <b>'$missionTitle'</b> has been APPROVED.\n\n" .
@@ -82,6 +83,7 @@ class EmailConfig {
                "This is an automated message, please do not reply.";
     }
     
+    // Rejected
     private function getRejectionText($name, $missionTitle) {
         return "Dear <b>$name</b> ,\n\n" .
                "Thank you for your interest in volunteering for '$missionTitle'.\n\n" .
@@ -92,9 +94,10 @@ class EmailConfig {
                "This is an automated message, please do not reply.";
     }
     
+    // COnfirmed hours
     private function getCompletionText($name, $missionTitle, $missionDate, $hours) {
         return "Dear $name,\n\n" .
-               "Great news! Your volunteer hours for <b>'$missionTitle'</b> have been CONFIRMED.\n\n" .
+               "Great news! Your volunteer hours for '$missionTitle' have been CONFIRMED.\n\n" .
                "Service Record:\n" .
                "- Mission: $missionTitle\n" .
                "- Date: $missionDate\n" .
