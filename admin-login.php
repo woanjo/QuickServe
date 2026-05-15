@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['full_name'] = $user['full_name'];
             $_SESSION['is_admin'] = (bool)$user['is_admin'];
         
-        // f valid, starts session and redirects to admin dashboard.
+        // if valid, starts session and redirects to admin dashboard.
             redirect('admin-dashboard.php');
         } else {
             $error = 'Invalid email or password. Only admins can login here.';
