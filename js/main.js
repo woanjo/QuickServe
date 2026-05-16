@@ -102,7 +102,3 @@ function formatTime(timeStr) {
     const displayHour = hour % 12 || 12;
     return `${displayHour}:${minutes} ${ampm}`;
 }
-
-function generateCertificate() {
-    alert('Certificate generation feature would integrate with a PDF library. For now, please use the CSV download.');
-}

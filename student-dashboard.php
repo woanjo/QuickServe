@@ -9,9 +9,9 @@ if (isAdmin()) {
     redirect('admin-dashboard.php');
 }
 
-$userId = getUserId(); // Get current logged-in student’s ID
+$userId = getUserId(); // Get current logged-in student's ID
 
-// Query upcoming missions reserved by this student(excluded ang completed)
+// Query upcoming missions reserved by this student (excludes completed)
 $stmt = $pdo->prepare("
     SELECT m.*, s.signup_date, s.completed, s.status
     FROM signups s
@@ -35,7 +35,7 @@ $stmt->execute([$userId]);
 $hoursData = $stmt->fetch();
 $totalHours = $hoursData['total_hours'];
 
-// completed mission list
+// Completed mission list
 $stmt = $pdo->prepare("
     SELECT m.*, s.signup_date, s.completed, s.status
     FROM signups s
@@ -119,7 +119,7 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                     <h1>My Dashboard</h1>
                 </div>
                 
-                <!-- MISSIONS TAB -->
+                <!-- ========== MISSIONS TAB ========== -->
                 <div id="missions-tab" class="dashboard-tab active">
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -131,8 +131,8 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                             <div class="stat-label">Verified Hours</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value"><?php echo ceil($totalHours / 10) * 10; ?></div>
-                            <div class="stat-label">Hours Goal</div>
+                            <div class="stat-value"><?php echo max(0, 10 - $totalHours); ?></div>
+                            <div class="stat-label">Hours Needed</div>
                         </div>
                     </div>
                     
@@ -140,7 +140,6 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                     // Separate missions by status
                     $pendingMissions = [];
                     $approvedMissions = [];
-                    $completedMissions = [];
                     
                     foreach ($upcomingMissions as $mission) {
                         if ($mission['status'] === 'pending') {
@@ -228,7 +227,6 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                                             ⏱️ <?php echo htmlspecialchars($mission['hours']); ?> hours • 
                                             📍 <?php echo htmlspecialchars($mission['location']); ?>
                                         </p>
-                                        <!-- Badge shows that this mission is completed and verified -->
                                         <span class="badge" style="background-color: #17a2b8; color: white;">Completed</span>
                                     </div>
                                     <div class="mission-actions">
@@ -239,7 +237,6 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                         </div>
                     </div>
                     <?php endif; ?>
-
                     
                     <?php if (empty($pendingMissions) && empty($approvedMissions) && empty($completedMissions)): ?>
                     <div class="section">
@@ -250,7 +247,7 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                     <?php endif; ?>
                 </div>
                 
-                <!-- HOURS TAB -->
+                <!-- ========== HOURS TAB ========== -->
                 <div id="hours-tab" class="dashboard-tab" style="display: none;">
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -258,8 +255,8 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                             <div class="stat-label">Total Volunteer Hours</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value"><?php echo ceil($totalHours / 10) * 10; ?></div>
-                            <div class="stat-label">Hours Goal</div>
+                            <div class="stat-value"><?php echo max(0, 50 - $totalHours); ?></div>
+                            <div class="stat-label">Hours Needed</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-value"><?php echo count($upcomingMissions); ?></div>
@@ -322,11 +319,10 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                     
                     <div class="action-buttons">
                         <a href="?download=csv" class="btn btn-secondary">📥 Download CSV</a>
-                        <button onclick="generateCertificate()" class="btn btn-outline">📜 Download Certificate</button>
                     </div>
                 </div>
                 
-                <!-- PROFILE TAB -->
+                <!-- ========== PROFILE TAB ========== -->
                 <div id="profile-tab" class="dashboard-tab" style="display: none;">
                     <div class="section">
                         <h2>Your Profile</h2>
@@ -371,7 +367,6 @@ if (isset($_GET['download']) && $_GET['download'] === 'csv') {
                     <div class="section">
                         <h2>Account Actions</h2>
                         <div class="action-buttons">
-                            <button onclick="alert('Password change feature coming soon')" class="btn btn-outline">🔐 Change Password</button>
                             <a href="logout.php" class="btn btn-secondary">🚪 Logout</a>
                         </div>
                     </div>
