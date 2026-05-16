@@ -1,3 +1,4 @@
+// Form toggle between log in and register
 function showLogin() {
     document.getElementById('loginForm').style.display = 'flex';
     document.getElementById('registerForm').style.display = 'none';
@@ -5,6 +6,7 @@ function showLogin() {
     document.querySelectorAll('.toggle-btn')[1].classList.remove('active');
 }
 
+//
 function showRegister() {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'flex';
@@ -12,10 +14,12 @@ function showRegister() {
     document.querySelectorAll('.toggle-btn')[1].classList.add('active');
 }
 
+// LOAD MISSIONS VIA AJAX
 function loadMissions() {
     const container = document.getElementById('missionsContainer');
     if (!container) return;
     
+    // Get all filter values from the search form
     const searchTerm = document.getElementById('searchInput')?.value || '';
     const category = document.getElementById('categoryFilter')?.value || '';
     const date = document.getElementById('dateFilter')?.value || '';
@@ -30,6 +34,7 @@ function loadMissions() {
         skills: skills
     });
     
+    // Fetch missions from API
     fetch(`./api/get-missions.php?${params}`)
         .then(response => response.json())
         .then(data => {
@@ -38,6 +43,7 @@ function loadMissions() {
                 return;
             }
             
+            // Generate HTML for each mission card
             container.innerHTML = data.missions.map(mission => `
                 <div class="mission-card">
                     <h3>${escapeHtml(mission.title)}</h3>
@@ -61,10 +67,12 @@ function loadMissions() {
         });
 }
 
+// Apply filters and reload missions
 function applyFilters() {
     loadMissions();
 }
 
+// Clear all filters and reload missions
 function clearFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('categoryFilter').value = '';
@@ -80,11 +88,13 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Format date for display (Jan 15, 2025)
 function formatDate(dateStr) {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// Format time for display (2:30 PM)
 function formatTime(timeStr) {
     const [hours, minutes] = timeStr.split(':');
     const hour = parseInt(hours);

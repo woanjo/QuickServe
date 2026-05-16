@@ -61,7 +61,7 @@ class EmailConfig {
                 $this->mail->Body = $this->getCompletionText($toName, $missionTitle, $missionDate, $hours);
             }
             
-            return $this->mail->send();
+            return $this->mail->send(); // Returns true if sent, false if failed
         } catch (Exception $e) {
             error_log("Email failed: " . $this->mail->ErrorInfo);
             return false;
@@ -94,7 +94,7 @@ class EmailConfig {
                "This is an automated message, please do not reply.";
     }
     
-    // COnfirmed hours
+    // Confirmed hours
     private function getCompletionText($name, $missionTitle, $missionDate, $hours) {
         return "Dear $name,\n\n" .
                "Great news! Your volunteer hours for '$missionTitle' have been CONFIRMED.\n\n" .
